@@ -1,0 +1,22 @@
+{
+  "name": "trie-articles",
+  "version": "1.0.0",
+  "description": "Trie Articles assignment for CS-570",
+  "main": "tries_1.js",
+  "scripts": {
+    "start": "node ./tries_1.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vsmagin/trie-articles.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vsmagin/trie-articles/issues"
+  },
+  "homepage": "https://github.com/vsmagin/trie-articles#readme",
+  "dependencies": {
+    "cli-table": "^0.3.1"
+  }
+}
