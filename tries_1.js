@@ -108,13 +108,10 @@ function processCompaniesList(companyData, articleText) {
     }
 
     // Search for word in Trie
-    console.log(articleText);
     articleText.forEach(function (word) {
         let foundWord = trieCompanies.find(word);
-        if (typeof foundWord === "string" && foundWord.trim() !== '') {
-            console.log(foundWord);
+        if (typeof foundWord === "string") {
             let elementPosition = allCompanies.map(function (company) { return company.name; }).indexOf(foundWord);
-            console.log(elementPosition);
             allCompanies[elementPosition].mentions++;
         }
     });
