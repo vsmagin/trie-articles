@@ -58,4 +58,50 @@ module.exports = class Tries {
 
     return node.companyName;
   }
+
+    /**
+   * Goes over the given text and updates the count of each company in the Tries tree 
+   * 
+   * @param {String} text 
+   */
+  searchForCompanyNames(text) {
+      let node = this.root;
+      let letter;
+      let tempNode = this.root;
+      for (let index = 0; index < text.length; index++) {
+          if (node.completeWord) {
+              tempNode = node;
+          }
+          letter = text[index];
+          if (letter in node.children) {      //if letter in children
+              node = node.children[letter];   //move to that letter
+          }
+          else {
+              if (node.completeWord) {
+                  node.count++;
+              }
+              else if (tempNode != this.root) {
+                  tempNode.count++;
+              }
+              node = this.root;
+              tempNode = this.root;
+          }
+      }
+  }
+
+      /**
+     * Returns the number of times each company from the list was mentioned in the text
+     * 
+     * @param {String} word 
+     */
+    getCompaniesCount(word) {
+      let node = this.root;
+      for (let letter of word) {
+          if (letter in node.children) {
+              node = node.children[letter];
+          }
+      }
+      return node.count;
+  }
+  
 };

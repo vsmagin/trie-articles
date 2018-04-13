@@ -108,6 +108,24 @@ function processCompaniesList(companyData, articleText) {
     }
 
     console.log(articleText);
+    trieCompanies.searchForCompanyNames(articleText);
+
+    for (company of allCompanies) {
+        for (synonym of company.synonyms) {
+            company.mentions += trieCompanies.getCompaniesCount(synonym);
+        }
+    }
+
+
+    // console.log('Count of the primary companies names on the list:');
+    // for (let line of lines) {
+    //     let companies = line.split('\t');
+    //     let count = 0;
+    //     for (let companie of companies) {
+    //         count += trieCompanies.getCompaniesCount(companie);
+    //     }
+    //     console.log(`${companies[0]} - ${count}`);
+    // }
 
     // Search for word in Trie
     // articleText.forEach(function (word) {
