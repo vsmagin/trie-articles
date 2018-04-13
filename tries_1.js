@@ -31,7 +31,7 @@ function cleanArticleWords(articleText) {
 
     ARTICLE_LENGTH = articleText.length;
 
-    return articleText.filter(item => IGNORED_WORDS.indexOf(item) === -1);
+    return articleText.filter(item => IGNORED_WORDS.indexOf(item) === -1).join(' ');
 }
 
 /**
@@ -107,16 +107,22 @@ function processCompaniesList(companyData, articleText) {
         allCompanies.push(company);
     }
 
-    // Search for word in Trie
-    articleText.forEach(function (word) {
-        let foundWord = trieCompanies.find(word);
-        if (typeof foundWord === "string") {
-            let elementPosition = allCompanies.map(function (company) { return company.name; }).indexOf(foundWord);
-            allCompanies[elementPosition].mentions++;
-        }
-    });
+    console.log(articleText);
 
-    // console.log('Apple hfuewhfeiu: ', trieCompanies.find('Apple hfuewhfeiu'));
+    // Search for word in Trie
+    // articleText.forEach(function (word) {
+    //     if (word.trim() !== '') {
+    //       let foundWord = trieCompanies.find(word);
+    //       if (typeof foundWord === "string" && foundWord.trim()) {
+    //         let elementPosition = allCompanies.map(function (company) {
+    //           return company.name;
+    //         }).indexOf(foundWord);
+    //         allCompanies[elementPosition].mentions++;
+    //       }
+    //     }
+    // });
+
+    // console.log(`${articleText[articleText.length - 1]}: `, trieCompanies.find(articleText[articleText.length - 1]));
     // console.log('Apple:', trieCompanies.find('Apple'));
 
     printTable(allCompanies);
