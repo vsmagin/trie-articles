@@ -84,19 +84,8 @@ module.exports = class Tries {
                 tempNode.count++;
                 index--;
             }
-            // node = this.root;
-            // tempNode = this.root;
-
         }
         else {
-            // if (node.completeWord) {
-            //     node.count++;
-            //     index--;
-            // }
-            // else if (tempNode != this.root) {
-            //     tempNode.count++;
-            //     index--;
-            // }
             node = this.root;
             tempNode = this.root;
         }
