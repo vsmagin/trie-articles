@@ -25,10 +25,12 @@ let ARTICLE_LENGTH = 0;
  */
 function cleanArticleWords(articleText) {
     // articleText = articleText.split('\n');
-    let periodIndex = articleText.indexOf('.');
+    // let periodIndex = articleText.indexOf('.');
+
+    // articleText.push(' END');
 
     articleText = articleText
-        .slice(0, periodIndex)
+        // .slice(0, periodIndex)
         .join(' ')
         .split(' ')
         .filter(item => item !== '')
@@ -81,11 +83,13 @@ function printTable(allCompanies) {
 
     allCompanies.forEach(function (company) {
         let relevance = Math.round(company.mentions / ARTICLE_LENGTH * 10000000) / 100000;
+        relevance = relevance.toPrecision(4);
         totalHits += company.mentions;
         table.push([company.name, company.mentions, `${relevance}%`]);
     });
 
     let totalRelevance = Math.round((totalHits / ARTICLE_LENGTH) * 1000000) / 10000;
+    totalRelevance = totalRelevance.toPrecision(4);
     table.push(['Total', totalHits, `${totalRelevance}%`]);
     table.push(['Total Words', ARTICLE_LENGTH]);
 
@@ -114,6 +118,7 @@ function processCompaniesList(companyData, articleText) {
     }
 
     console.log(articleText);
+    console.log(articleText.length);
     trieCompanies.searchForCompanyNames(articleText);
 
     for (company of allCompanies) {
@@ -159,19 +164,19 @@ function processCompaniesList(companyData, articleText) {
 let text = [];
 
 function readNewsArticle() {
-    console.log('Please enter your news article:');
+    console.log('Please enter your news article ending it with a single period on a line:');
     readLines();
 }
 
 function readLines() {
     rl.question('', (data) => {
-        text.push(data);
-        if (data == '.') {
+        if (data === '.') {
             // text = text.join('');
             console.log(text);
             readCompaniesFile(text);
             return rl.close();
         }
+        text.push(data);
         readLines();
     });
 }

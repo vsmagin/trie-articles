@@ -65,29 +65,43 @@ module.exports = class Tries {
    * @param {String} text 
    */
   searchForCompanyNames(text) {
-      let node = this.root;
-      let letter;
-      let tempNode = this.root;
-      for (let index = 0; index < text.length; index++) {
-          if (node.completeWord) {
-              tempNode = node;
-          }
-          letter = text[index];
-          if (letter in node.children) {      //if letter in children
-              node = node.children[letter];   //move to that letter
-          }
-          else {
-              if (node.completeWord) {
-                  node.count++;
-              }
-              else if (tempNode != this.root) {
-                  tempNode.count++;
-              }
-              node = this.root;
-              tempNode = this.root;
-          }
-      }
-  }
+    let node = this.root;
+    let letter;
+    let tempNode = this.root;
+    for (let index = 0; index < text.length; index++) {
+        if (node.completeWord) {
+            tempNode = node;
+        }
+        letter = text[index];
+        if (letter in node.children) {      //if letter in children
+            node = node.children[letter];   //move to that letter
+
+            if (node.completeWord) {
+                node.count++;
+                index--;
+            }
+            else if (tempNode != this.root) {
+                tempNode.count++;
+                index--;
+            }
+            // node = this.root;
+            // tempNode = this.root;
+
+        }
+        else {
+            // if (node.completeWord) {
+            //     node.count++;
+            //     index--;
+            // }
+            // else if (tempNode != this.root) {
+            //     tempNode.count++;
+            //     index--;
+            // }
+            node = this.root;
+            tempNode = this.root;
+        }
+    }
+}
 
       /**
      * Returns the number of times each company from the list was mentioned in the text
