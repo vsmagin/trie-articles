@@ -24,7 +24,7 @@ let ARTICLE_LENGTH = 0;
  * @param {String[]} articleText
  */
 function cleanArticleWords(articleText) {
-    articleText = articleText.split('\n');
+    // articleText = articleText.split('\n');
     let periodIndex = articleText.indexOf('.');
 
     articleText = articleText
@@ -167,7 +167,8 @@ function readLines() {
     rl.question('', (data) => {
         text.push(data);
         if (data == '.') {
-            text = text.join('\n');
+            // text = text.join('');
+            console.log(text);
             readCompaniesFile(text);
             return rl.close();
         }
