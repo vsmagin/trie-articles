@@ -8,6 +8,11 @@ const Table = require('cli-table');
 const Company = require('./classes/company');
 const Tries = require('./classes/tries');
 
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
 // Regex to remove non-alphabet characters
 const REGEX = /[.,\/#!$%^&*;:{}=\-_`~()\n\r]+/g;
 const IGNORED_WORDS = ['a', 'an', 'the', 'and', 'or', 'but'];
@@ -38,10 +43,11 @@ function cleanArticleWords(articleText) {
  * Reads the file with Company names
  * and calls the function to process the input article
  */
-function readCompaniesFile() {
+function readCompaniesFile(text) {
     let inputFileCompanies = path.join(__dirname, 'companies.dat');
     let inputFileArticle = path.join(__dirname, 'sample-article.txt');
-    let articleText = fs.readFileSync(inputFileArticle).toString();
+    // let articleText = fs.readFileSync(inputFileArticle).toString();
+    articleText = text;
 
     if (articleText === '') {
         throw 'The article text is blank';
@@ -113,8 +119,11 @@ function processCompaniesList(companyData, articleText) {
     for (company of allCompanies) {
         for (synonym of company.synonyms) {
             company.mentions += trieCompanies.getCompaniesCount(synonym);
+            console.log(synonym);
+            console.log(trieCompanies.getCompaniesCount(synonym));
         }
     }
+
 
 
     // console.log('Count of the primary companies names on the list:');
@@ -146,4 +155,27 @@ function processCompaniesList(companyData, articleText) {
     printTable(allCompanies);
 }
 
-readCompaniesFile();
+// readCompaniesFile();
+let text = [];
+
+function readNewsArticle() {
+    console.log('Please enter your news article:');
+    readLines();
+}
+
+function readLines() {
+    rl.question('', (data) => {
+        text.push(data);
+        if (data == '.') {
+            text = text.join('\n');
+            readCompaniesFile(text);
+            return rl.close();
+        }
+        readLines();
+    });
+}
+
+
+
+readNewsArticle();
+ 
