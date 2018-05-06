@@ -25,19 +25,40 @@ module.exports = class Tries {
    * @param {TrieNode} node
    * @param {String} company name
    */
-  _insertLetter(word, index, node, company) {
-    if (word[index] in node.children) {
-      this._insertLetter(word, index + 1, node.children[word[index]], company);
-    } else {
-      node.children[word[index]] = new TrieNode(word[index], company);
-      node = node.children[word[index]];
+  // _insertLetter(word, index, node, company) {
+  //   if (word[index] in node.children) {
+  //     this._insertLetter(word, index + 1, node.children[word[index]], company);
+  //   } else {
+  //     node.children[word[index]] = new TrieNode(word[index], company);
+  //     node = node.children[word[index]];
 
-      if (index === word.length - 1) {
-        node.completeWord = true;
-        return;
+  //     if (index === word.length - 1) {
+  //       node.completeWord = true;
+  //       return;
+  //     }
+  //     this._insertLetter(word, index + 1, node, company);
+  //   }
+  // }
+
+  _insertLetter(word, index, node, company) {
+    while (index <= word.length - 1) {
+      if (word[index] in node.children) {
+        node = node.children[word[index]]
+        index++;
+        // this._insertLetter(word, index + 1, node.children[word[index]], company);
+      } 
+      else {
+        node.children[word[index]] = new TrieNode(word[index], company);
+        node = node.children[word[index]]; 
+        // if (index === word.length - 1) {
+        //   node.completeWord = true;
+        //   return;
+        // }
+        index++;
+        // this._insertLetter(word, index + 1, node, company);
       }
-      this._insertLetter(word, index + 1, node, company);
     }
+    node.completeWord = true;
   }
 
   /**
