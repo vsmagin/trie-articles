@@ -41,7 +41,7 @@ function cleanArticleWords(articleText) {
  * and calls the function to process the input article
  */
 function readCompaniesFile(text) {
-    let inputFileCompanies = path.join(__dirname, 'companies.dat');
+    let inputFileCompanies = path.join(__dirname, 'company.dat');
     // let inputFileArticle = path.join(__dirname, 'sample-article.txt');
     // let articleText = fs.readFileSync(inputFileArticle).toString();
     articleText = text;
