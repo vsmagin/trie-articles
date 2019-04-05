@@ -1,204 +1,131 @@
+// Tries Assignment
+
 const fs = require('fs');
 const path = require("path");
 const readline = require("readline");
+const Table = require('cli-table');
 
-// const rl = readline.createInterface({
-//     input: process.stdin,
-//     output: process.stdout
-// });
+const Company = require('./classes/company');
+const Tries = require('./classes/tries');
 
-class TrieNode {
-    constructor(letter) {
-        this.letter = letter;
-        this.completeWord = false;
-        this.count = 0;
-        this.children = {};
-    }
-}
+// Regex to remove non-alphabet characters
+const REGEX = /[.,\/#!$%^&*;:{}=\-_`~()\n\r]+/g;
+const IGNORED_WORDS = ['a', 'an', 'the', 'and', 'or', 'but'];
+let ARTICLE_LENGTH = 0;
 
-// let companies = 'Microsoft, Apple, Sony, Microsoft Corporation, Sony Corporation';
-// let companies = 'Microsoft, Microsoft Corporation Inc., Sony, Sony Corporation, Apple, Panasonic, Dell, Dell Technologies Inc., Dell Client Solutions Group';
-let sampleText = 'Microsoft Corporation Inc. released new products today. \
-                This week, a Apple Bloomberg report surfaced that said Apple is planning major changes for its iPhone. \
-                Apple will design an IPhone XX. \
-                Sony has no big announcements. Dell Technologies Inc. and Panasonic will work together. \
-                Dell will come up with a new computer, Dell Technologies Inc. will come up with a new tablet PC. \
-                Dell Technotechnologies Inc is not real company. Microsoft came up with HoloLens. \
-                Microsoft Corp is not a real name, but Microsoft is!';
+/**
+ * Normalize article text data and return array of text to be searched
+ *
+ * @param {String[]} articleText
+ */
+function cleanArticleWords(articleText) {
+    articleText = articleText.split('\n');
+    let periodIndex = articleText.indexOf('.');
 
-let regEx = /[.,\/#!$%\^&\*;:{}=\-_`~()\n\r]+/g;
+    articleText = articleText
+        .slice(0, periodIndex)
+        .join(' ')
+        .split(' ')
+        .filter(item => item !== '')
+        .map(item => item.replace(REGEX, ''));
 
-class Tries {
-    constructor() {
-        this.root = new TrieNode('');
-    }
+    ARTICLE_LENGTH = articleText.length;
 
-    /**
-     * Inserts Company name from the list into a Tries tree
-     * 
-     * @param {String} word 
-     */
-    insertString(word) {
-        this._insertLetter(word,0,this.root);
-    }
-
-    /**
-     * Helper function to insert Company name letter by letter into a Tries tree
-     * 
-     * @param {String} word 
-     * @param {Number} index 
-     * @param {TrieNode} node 
-     */
-    _insertLetter(word, index, node) {
-        if (word[index] in node.children) {
-            this._insertLetter(word, index+1, node.children[word[index]]);
-        }
-        else {
-            // console.log(index);
-            // console.log('Old node: ', node);
-            node.children[word[index]] = new TrieNode(word[index]);
-            node = node.children[word[index]];
-            // console.log('New node: ', node);
-            if (index === word.length-1) {
-                node.completeWord = true;
-                // console.log(word);
-                return;
-            }
-            this._insertLetter(word, index+1, node);
-        }
-    }
-
-    /**
-     * Goes over the given text and updates the count of each company in the Tries tree 
-     * 
-     * @param {String} text 
-     */
-    updateStringByLetter(text) {
-        let node = this.root;
-        let letter;
-        let tempNode = this.root;
-        for (let index = 0; index < text.length; index++) {
-            if (node.completeWord) {
-                tempNode = node;
-            }
-            letter = text[index];
-            if (letter.match(regEx)) {
-                continue;
-            }
-            else {
-                if (letter in node.children) {      //if letter in children
-                    node = node.children[letter];   //move to that letter
-                }
-                else {
-                    if (node.completeWord) {
-                        node.count++;
-                    }
-                    else if (tempNode != this.root) {
-                        tempNode.count++;
-                    }
-                    node = this.root;
-                    tempNode = this.root;
-                }
-            }
-        }
-    }
-
-    /**
-     * Returns the number of times each company from the list was mentioned in the text
-     * 
-     * @param {String} word 
-     */
-    getCompaniesCount(word) {
-        let node = this.root;
-        for (let letter of word) {
-            if (letter.match(regEx)) {
-                continue;
-            }
-            if (letter in node.children) {
-                node = node.children[letter];
-            }
-        }
-        return node.count;
-    }
-
-
+    return articleText.filter(item => IGNORED_WORDS.indexOf(item) === -1).join(' ');
 }
 
 /**
  * Reads the file with Company names
- * and calls the fucntion to process the input article
+ * and calls the function to process the input article
  */
 function readCompaniesFile() {
-    let inputFilePath = path.join(__dirname, 'companies.dat');
-    fs.readFile(inputFilePath, 'utf8', function (error, data) {
-        if (error) {
-            throw error;
-        }
-        processCompaniesList(data);
+    let inputFileCompanies = path.join(__dirname, 'companies.dat');
+    let inputFileArticle = path.join(__dirname, 'sample-article.txt');
+    let articleText = fs.readFileSync(inputFileArticle).toString();
+
+    if (articleText === '') {
+        throw 'The article text is blank';
+    }
+    articleText = cleanArticleWords(articleText);
+
+    let lineReader = readline.createInterface({
+        input: fs.createReadStream(inputFileCompanies)
     });
+
+    let companyData = [];
+    lineReader.on('line', function (line) {
+        companyData.push(line);
+    });
+
+    lineReader.on('close', function () {
+        processCompaniesList(companyData, articleText);
+    })
 }
 
 /**
- * Gets array of Companies names
- * processes the input article
- * 
- * @param {Array} data 
+ * Pretty print results table
+ *
+ * @param {Company[]} allCompanies
  */
-function processCompaniesList(data) {
+function printTable(allCompanies) {
+    let totalHits = 0;
+    let table = new Table({
+        head: ['Company', 'Hit Count', 'Relevance']
+    });
+
+    allCompanies.forEach(function (company) {
+        let relevance = Math.round(company.mentions / ARTICLE_LENGTH * 10000000) / 100000;
+        totalHits += company.mentions;
+        table.push([company.name, company.mentions, `${relevance}%`]);
+    });
+
+    let totalRelevance = Math.round((totalHits / ARTICLE_LENGTH) * 1000000) / 10000;
+    table.push(['Total', totalHits, `${totalRelevance}%`]);
+    table.push(['Total Words', ARTICLE_LENGTH]);
+
+    console.log(table.toString());
+}
+
+/**
+ * Checks how often the individual strings in article text exist in company data
+ *
+ * @param {Array} companyData
+ * @param {Array} articleText Array of individual strings in the article
+ */
+function processCompaniesList(companyData, articleText) {
     // Removes spaces and punctuation from the string
     let trieCompanies = new Tries();
-    data = data.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()\r]+/g, '');
-    let lines = data.split('\n');
-    console.log(lines);
-    for (let line of lines) {
+    let allCompanies = [];
+    for (let line of companyData) {
         let companies = line.split('\t');
-        console.log(companies);
-        for (let companie of companies) {
-            console.log(companie);
-            trieCompanies.insertString(companie);
+        companies = companies.map(company => company.replace(REGEX, ''));
+        let company = new Company(companies[0], companies);
+        for (let synonym of company.synonyms) {
+            trieCompanies.insertString(synonym, company.name);
         }
+
+        allCompanies.push(company);
     }
 
-    trieCompanies.updateStringByLetter(sampleText);
+    console.log(articleText);
 
-    console.log();
-    console.log('Count of all the companies names on the list:');
-    for (let line of lines) {
-        let companies = line.split('\t');
-        let count = 0;
-        for (let companie of companies) {
-            // count += trieCompanies.getCompaniesCount(companie);
-            console.log(`${companie} - ${trieCompanies.getCompaniesCount(companie)}`);
-        }
-        // console.log(`${companies[0]} - ${count}`);
-    }
+    // Search for word in Trie
+    // articleText.forEach(function (word) {
+    //     if (word.trim() !== '') {
+    //       let foundWord = trieCompanies.find(word);
+    //       if (typeof foundWord === "string" && foundWord.trim()) {
+    //         let elementPosition = allCompanies.map(function (company) {
+    //           return company.name;
+    //         }).indexOf(foundWord);
+    //         allCompanies[elementPosition].mentions++;
+    //       }
+    //     }
+    // });
 
-    console.log();
-    console.log('Count of the primary companies names on the list:');
-    for (let line of lines) {
-        let companies = line.split('\t');
-        let count = 0;
-        for (let companie of companies) {
-            count += trieCompanies.getCompaniesCount(companie);
-        }
-        console.log(`${companies[0]} - ${count}`);
-    }
+    // console.log(`${articleText[articleText.length - 1]}: `, trieCompanies.find(articleText[articleText.length - 1]));
+    // console.log('Apple:', trieCompanies.find('Apple'));
+
+    printTable(allCompanies);
 }
 
 readCompaniesFile();
-
-// let trie = new Tries();
-// words = companies.split(', ');
-// console.log(words);
-// for (let word of words) {
-//     word = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()\r]+/g, '');
-//     trie.insertString(word);
-// }
-
-// trie.updateStringByLetter(sampleText);
-// console.log();
-// for (let word of words) {
-//     console.log(`${word} - ${trie.getCompaniesCount(word)}`);
-// }
-
-
